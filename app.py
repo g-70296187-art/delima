@@ -45,11 +45,12 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # 3. PAPARAN LOGO & NAMA SEKOLAH
-if os.path.exists("logo.png"):
+if os.path.exists("logo.jpg"):
     col1, col2, col3 = st.columns([1, 1, 1])
     with col2:
         image = Image.open("logo.jpg")
         st.image(image, width=150)
+        layout="centered"
 
 st.markdown("<h1 class='main-title'>SMK TAMAN BUNGA RAYA 1</h1>", unsafe_allow_html=True)
 st.markdown("<p style='text-align: center;'><span class='year-badge'>SESI 2026</span></p>", unsafe_allow_html=True)
