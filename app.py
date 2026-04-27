@@ -1,108 +1,100 @@
 import streamlit as st
 import pandas as pd
+from PIL import Image
+import os
 
 # 1. KONFIGURASI HALAMAN
 st.set_page_config(
-    page_title="Semakan DELIMA 1IB",
+    page_title="Semakan DELIMA 2026 - SMKTBR1",
     page_icon="🎓",
     layout="centered"
 )
 
-# 2. GAYA VISUAL (CSS) - Untuk mencantikkan UI
+# 2. GAYA VISUAL (CSS)
 st.markdown("""
     <style>
-    /* Tukar warna background utama */
     .stApp {
-        background-color: #f8f9fa;
+        background-color: #ffffff;
     }
-    /* Cantikkan kotak input */
     .stTextInput > div > div > input {
-        border-radius: 20px;
-        border: 2px solid #007bff;
-        padding: 10px 20px;
-        font-size: 18px;
+        border-radius: 10px;
+        border: 2px solid #800000;
     }
-    /* Cantikkan kad maklumat */
-    .stAlert {
-        border-radius: 15px;
-    }
-    /* Tajuk Center */
     .main-title {
         text-align: center;
-        color: #1a237e;
-        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        color: #800000;
+        font-family: 'Arial Black', Gadget, sans-serif;
+        margin-bottom: 0px;
+    }
+    .sub-title {
+        text-align: center;
+        color: #333;
+        font-weight: bold;
+        margin-top: 0px;
+    }
+    .year-badge {
+        text-align: center;
+        color: #ffffff;
+        background-color: #800000;
+        border-radius: 5px;
+        padding: 2px 10px;
+        display: inline-block;
+        font-weight: bold;
     }
     </style>
     """, unsafe_allow_html=True)
 
-# 3. LINK DATA (Gunakan link CSV Google Sheets anda)
+# 3. PAPARAN LOGO & NAMA SEKOLAH
+if os.path.exists("LOGO.jpg"):
+    col1, col2, col3 = st.columns([1, 1, 1])
+    with col2:
+        image = Image.open("LOGO.jpg")
+        st.image(image, width=150)
+
+st.markdown("<h1 class='main-title'>SMK TAMAN BUNGA RAYA 1</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center;'><span class='year-badge'>SESI 2026</span></p>", unsafe_allow_html=True)
+st.markdown("<p class='sub-title'>SISTEM SEMAKAN ID DELIMA MURID</p>", unsafe_allow_html=True)
+st.divider()
+
+# 4. LINK DATA
 CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRyKqWvNqanWnfzc967HrImHjJ28K4i5JcoNars0PrQDe3pu9gmoz7Cxs1eQj63vAvOx80fox5TlnFU/pub?gid=376187573&single=true&output=csv"
 
-# 4. FUNGSI MUAT DATA
-@st.cache_data(ttl=600) # Simpan data dalam cache selama 10 minit
+@st.cache_data(ttl=600)
 def load_data():
     try:
         df = pd.read_csv(CSV_URL)
-        # Pastikan semua data teks adalah huruf besar untuk carian konsisten
-        df = df.apply(lambda x: x.astype(str).str.upper() if x.dtype == "object" else x)
         return df
     except Exception as e:
         return None
 
-# 5. HEADER & VISUAL ATAS
-st.markdown("<h1 class='main-title'>🔍 SISTEM SEMAKAN ID DELIMA</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; color: #666;'>Masukkan nama anda untuk mendapatkan ID & Maklumat Kelas secara pantas.</p>", unsafe_allow_html=True)
-st.divider()
-
-# 6. LOGIK APLIKASI
+# 5. LOGIK CARIAN
 data = load_data()
 
 if data is not None:
-    # Kotak Carian
-    nama_input = st.text_input("", placeholder="TAIP NAMA PENUH ANDA DI SINI...").strip().upper()
+    nama_input = st.text_input("MASUKKAN NAMA PENUH ANDA:", placeholder="Contoh: MUHAMMAD ALI BIN OSMAN").strip().upper()
 
     if nama_input:
         if len(nama_input) < 3:
-            st.info("💡 Sila taip sekurang-kurangnya 3 abjad untuk memulakan carian.")
+            st.warning("⚠️ Sila taip sekurang-kurangnya 3 huruf untuk mencari.")
         else:
-            # Tapis data berdasarkan nama (Lajur pertama)
-            # Anda boleh tukar 'NAMA' kepada nama header sebenar dalam sheet anda
-            hasil = data[data.iloc[:, 0].str.contains(nama_input, na=False)]
+            hasil = data[data.iloc[:, 0].astype(str).str.contains(nama_input, case=False, na=False)]
 
             if not hasil.empty:
-                st.balloons() # Animasi kejayaan
-                st.success(f"✅ Menjumpai {len(hasil)} rekod yang sepadan.")
-                
-                # Paparkan dalam bentuk DataFrame/Jadual yang kemas
-                # Kita hanya tunjuk 3 kolum pertama (Nama, ID, Kelas)
+                st.balloons()
+                st.success(f"Rekod Ditemui: {len(hasil)}")
                 st.dataframe(
                     hasil.iloc[:, :3], 
                     use_container_width=True,
                     hide_index=True
                 )
-                
-                st.info("📌 **Nota:** Sila simpan/salin ID anda untuk kegunaan rasmi.")
             else:
-                st.error("❌ Nama tidak dijumpai. Sila pastikan ejaan mengikut IC atau hubungi Guru Kelas.")
+                st.error("Tiada rekod ditemui. Sila pastikan ejaan betul atau hubungi Guru Kelas.")
     else:
-        # Paparan semasa kotak carian kosong
-        st.write("")
-        st.info("Selamat Datang! Sila gunakan kotak carian di atas.")
-        
-        # Tambah statistik ringkas di bawah
-        c1, c2 = st.columns(2)
-        with c1:
-            st.metric(label="Jumlah Rekod Murid", value=len(data))
-        with c2:
-            st.metric(label="Status Sistem", value="AKTIF")
+        st.info("Sila masukkan nama untuk memulakan semakan sesi 2026.")
 
 else:
-    st.error("⚠️ Ralat teknikal: Gagal menyambung ke pangkalan data Google Sheets. Sila cuba sebentar lagi.")
+    st.error("Gagal memuatkan data. Sila semak pautan Google Sheets anda.")
 
-# 7. FOOTER
+# 6. FOOTER
 st.divider()
-st.markdown("""
-    <div style='text-align: center; font-size: 12px; color: #888;'>
-        Sistem Semakan Kendiri &copy; 2026 | Dikembangkan untuk memudahkan urusan murid.
-    </div>
-    """, unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; font-size: 12px;'>&copy; 2026 SMK Taman Bunga Raya 1 | Berilmu, Berdisiplin, Berbakti</p>", unsafe_allow_html=True)
