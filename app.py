@@ -1,42 +1,53 @@
 import streamlit as st
 import pandas as pd
 
-# Konfigurasi Halaman
-st.set_page_config(page_title="Semakan ID DELIMA", page_icon="🔍")
+st.set_page_config(page_title="Semakan DELIMA", layout="wide")
 
-# Link CSV Google Sheets anda
-CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRyKqWvNqanWnfzc967HrImHjJ28K4i5JcoNars0PrQDe3pu9gmoz7Cxs1eQj63vAvOx80fox5TlnFU/pub?gid=376187573&single=true&output=csv"
+# CSS Khas untuk mencantikkan lagi UI
+st.markdown("""
+    <style>
+    .main {
+        background-color: #f5f7f9;
+    }
+    .stTextInput > div > div > input {
+        background-color: #ffffff;
+        border-radius: 10px;
+        border: 2px solid #1E88E5;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
-st.title("🔍 Sistem Semakan ID DELIMA")
-st.write("Sila masukkan nama anda untuk menyemak ID dan Kelas.")
+CSV_URL = "URL_GOOGLE_SHEETS_ANDA"
 
-# Fungsi muat data
-@st.cache_data(ttl=300) # Data disimpan selama 5 minit sebelum refresh automatik
 def load_data():
     return pd.read_csv(CSV_URL)
+
+# --- HEADER ---
+st.markdown("<h1 style='text-align: center;'>🔍 SEMAKAN ID DELIMA BERSATU</h1>", unsafe_allow_html=True)
+st.divider()
 
 try:
     df = load_data()
     
-    # Kotak Carian yang besar dan mesra pengguna
-    nama_cari = st.text_input("TAIP NAMA PENUH ANDA:", "").strip().upper()
+    # Bahagian Carian dalam Kolum
+    left, mid, right = st.columns([1, 2, 1])
+    with mid:
+        nama_cari = st.text_input("MASUKKAN NAMA PENUH ANDA:", placeholder="Contoh: AHMAD ZAKI").strip().upper()
 
     if len(nama_cari) >= 3:
-        # Tapis data (Cari dalam lajur 'NAMA')
-        # Nota: Pastikan tajuk lajur dalam Google Sheets anda adalah 'NAMA'
         hasil = df[df.iloc[:, 0].str.contains(nama_cari, case=False, na=False)]
         
         if not hasil.empty:
-            st.success(f"Menjumpai {len(hasil)} rekod.")
-            # Paparkan Nama, ID, dan Kelas sahaja (3 kolum pertama)
-            st.dataframe(hasil.iloc[:, :3], use_container_width=True)
+            st.balloons() # Animasi gembira bila jumpa!
+            st.success(f"Padanan dijumpai: {len(hasil)} rekod")
+            
+            # Paparan data dalam bentuk table yang cantik
+            st.table(hasil.iloc[:, :3]) 
         else:
-            st.warning("Tiada padanan dijumpai. Sila pastikan ejaan betul.")
-    elif len(nama_cari) > 0:
-        st.info("Sila taip sekurang-kurangnya 3 huruf.")
-
+            st.error("Nama tidak dijumpai. Sila cuba lagi.")
+            
 except Exception as e:
-    st.error("Gagal memuatkan data dari Google Sheets. Sila hubungi admin.")
+    st.warning("Menunggu data dari Google Sheets...")
 
-st.divider()
-st.caption("Data dikemaskini secara langsung dari Google Sheets.")
+st.sidebar.title("Bantuan")
+st.sidebar.info("Sistem ini memudahkan murid menyemak ID tanpa perlu mencari dalam senarai panjang.")
