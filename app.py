@@ -45,7 +45,7 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # 3. PAPARAN LOGO & NAMA SEKOLAH
-if os.path.exists("LOGO.jpg"):
+if os.path.exists("logo.png"):
     col1, col2, col3 = st.columns([1, 1, 1])
     with col2:
         image = Image.open("LOGO.jpg")
